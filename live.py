@@ -14,12 +14,12 @@ stock_symbol = st.selectbox(
 data = yf.download(stock_symbol, period="1d", interval="1m")
 
 if not data.empty:
-    last_price = data["Close"].iloc[-1]
-    prev_price = data["Close"].iloc[-2] if len(data) > 1 else last_price
+    last_price = float(data["Close"].iloc[-1])
+    prev_price = float(data["Close"].iloc[-2]) if len(data) > 1 else last_price
     change = last_price - prev_price
 
-    # Ensure delta is numeric
-    delta_val = round(change, 2) if change is not None else 0
+    # Convert to native Python float for Streamlit
+    delta_val = float(round(change, 2)) if change is not None else 0.0
 
     # Display metrics safely
     col1, col2, col3 = st.columns(3)
