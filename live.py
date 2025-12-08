@@ -1,75 +1,79 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
+import time
 from datetime import datetime
-from streamlit_autorefresh import st_autorefresh
 
-# ---------- Page setup ----------
+# ---------- Page config ----------
 st.set_page_config(
-    page_title="Indian Stock Dashboard",
+    page_title="Indian Stock Prices",
     layout="wide"
 )
 
-st.title("📊 Indian Stock Market Dashboard")
+st.title("📊 Indian Live Stock Prices (Yahoo Finance)")
+st.caption("Near real-time prices | NSE stocks")
 
-# ---------- Auto refresh every 30 sec ----------
-st_autorefresh(interval=30 * 1000, key="refresh")
+# ---------- Stock list ----------
+default_stocks = [
+    "RELIANCE.NS",
+    "TCS.NS",
+    "INFY.NS",
+    "HDFCBANK.NS",
+    "ICICIBANK.NS"
+]
 
-# ---------- Stock input ----------
-stock_symbol = st.text_input(
-    "Enter NSE Stock Symbol (RELIANCE.NS, TCS.NS, INFY.NS):",
-    value="RELIANCE.NS"
-).upper().strip()
+selected_stocks = st.multiselect(
+    "Select stocks to view:",
+    options=default_stocks,
+    default=default_stocks[:3]
+)
 
-if stock_symbol:
+@st.cache_data(ttl=30)
+def get_stock_data(symbols):
+    tickers = yf.Tickers(" ".join(symbols))
+    rows = []
+
+    for sym in symbols:
+        t = tickers.tickers[sym]
+        info = t.fast_info
+
+        rows.append({
+            "Stock": sym.replace(".NS", ""),
+            "Price (₹)": info.get("lastPrice"),
+            "Change (₹)": info.get("lastPrice") - info.get("previousClose")
+            if info.get("previousClose") else None,
+            "Change (%)": (
+                ((info.get("lastPrice") - info.get("previousClose"))
+                / info.get("previousClose")) * 100
+            ) if info.get("previousClose") else None,
+            "Day Volume": info.get("volume")
+        })
+
+    return pd.DataFrame(rows)
+
+if selected_stocks:
     try:
-        # ---------- Fetch intraday data ----------
-        data = yf.download(
-            stock_symbol,
-            period="1d",
-            interval="1m",
-            progress=False
+        df = get_stock_data(selected_stocks)
+
+        st.dataframe(
+            df.style.format({
+                "Price (₹)": "{:.2f}",
+                "Change (₹)": "{:+.2f}",
+                "Change (%)": "{:+.2f}",
+                "Day Volume": "{:,}"
+            }),
+            use_container_width=True
         )
 
-        if data.empty:
-            st.warning("No intraday data available (market closed or Yahoo delay).")
-            st.stop()
-
-        # ---------- Clean data ----------
-        data = data.dropna()
-
-        last_price = float(data["Close"].iloc[-1])
-        previous_price = float(data["Close"].iloc[-2])
-        change = last_price - previous_price
-
-        # ✅ TOTAL traded volume of the day
-        total_volume = int(data["Volume"].sum())
-
-        # ---------- Metrics ----------
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Stock", stock_symbol.replace(".NS", ""))
-        c2.metric(
-            "Price (₹)",
-            f"{last_price:.2f}",
-            f"{change:+.2f}"
-        )
-        c3.metric("Day Volume", f"{total_volume:,}")
-
-        # ---------- Live price chart ----------
-        st.subheader("Intraday Price Movement")
-        st.line_chart(data["Close"])
-
-        # ---------- Optional volume chart ----------
-        st.subheader("Intraday Volume")
-        st.bar_chart(data["Volume"])
-
-        # ---------- Last updated ----------
         st.caption(f"Last updated: {datetime.now().strftime('%H:%M:%S')}")
 
+        # auto refresh
+        time.sleep(30)
+        st.rerun()
+
     except Exception as e:
-        st.error(f"Error fetching data: {e}")
-
+        st.error(f"Error fetching stock prices: {e}")
 else:
-    st.info("Enter a valid NSE stock symbol.")
+    st.info("Select at least one stock to view.")
 
-st.caption("Data source: Yahoo Finance (Near-real-time)")
+st.caption("Data source: Yahoo Finance")
