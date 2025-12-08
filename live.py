@@ -71,7 +71,7 @@ for i, row in enumerate(suggestion_data):
 st.divider()
 
 # ---------------- SEARCH BAR (instead of dropdown) ----------------
-st.subheader("🔎 Search Stock to View Details")
+st.subheader(" Search Stock to View Details")
 
 stock_symbol = st.text_input(
     "Enter Stock Symbol",
