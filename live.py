@@ -5,7 +5,7 @@ st.set_page_config(page_title="Indian Stock Dashboard", layout="wide")
 st.title(" Indian Stock Market Dashboard")
 
 # ---------------- Stock Suggestions ----------------
-st.subheader(" Stock Suggestions (Live Prices – Yahoo Finance)")
+st.subheader(" Stock Suggestions ")
 
 suggestions = {
     "Reliance Industries": "RELIANCE.NS",
