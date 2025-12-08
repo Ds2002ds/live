@@ -50,14 +50,13 @@ cols = st.columns(3)
 
 for i, row in enumerate(suggestion_data):
     with cols[i % 3]:
-
         price = row["Price (₹)"]
         change = row["Change (₹)"]
 
         price_str = f"₹ {price:.2f}" if price is not None else "₹ —"
         if change is None:
-            change_str = "—"
             emoji = "⚪"
+            change_str = "—"
         else:
             emoji = "🟢" if change > 0 else "🔴"
             change_str = f"{change:+.2f}"
@@ -69,12 +68,16 @@ for i, row in enumerate(suggestion_data):
         {emoji} {change_str}
         """)
 
+st.divider()
 
-# ---------------- Stock Selector ----------------
-stock_symbol = st.selectbox(
-    "📈 Select Stock to View Details",
-    symbols
-)
+# ---------------- SEARCH BAR (instead of dropdown) ----------------
+st.subheader("🔎 Search Stock to View Details")
+
+stock_symbol = st.text_input(
+    "Enter Stock Symbol",
+    value="RELIANCE.NS",
+    placeholder="Eg: RELIANCE.NS, TCS.NS, AAPL"
+).upper().strip()
 
 # ---------------- Fetch selected stock data ----------------
 data = yf.download(stock_symbol, period="5d", interval="1d", progress=False)
@@ -96,6 +99,6 @@ if not data.empty:
     col3.metric("Day Volume", f"{volume:,}")
 
 else:
-    st.error("Failed to load data. Market closed or Yahoo unavailable.")
+    st.error("❌ Stock not found, market closed, or Yahoo unavailable.")
 
 st.caption("Data source: Yahoo Finance (near real-time)")
