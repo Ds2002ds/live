@@ -47,17 +47,28 @@ suggestion_data = fetch_suggestion_prices(symbols)
 
 # display suggestion cards
 cols = st.columns(3)
+
 for i, row in enumerate(suggestion_data):
     with cols[i % 3]:
+
+        price = row["Price (₹)"]
+        change = row["Change (₹)"]
+
+        price_str = f"₹ {price:.2f}" if price is not None else "₹ —"
+        if change is None:
+            change_str = "—"
+            emoji = "⚪"
+        else:
+            emoji = "🟢" if change > 0 else "🔴"
+            change_str = f"{change:+.2f}"
+
         st.markdown(f"""
         **{row['Company']}**  
         `{row['Symbol']}`  
-        **₹ {row['Price (₹)']:.2f}**  
-        {'🟢 +' if row['Change (₹)'] and row['Change (₹)'] > 0 else '🔴 '}
-        {row['Change (₹)']:.2f if row['Change (₹)'] is not None else '—'}
+        **{price_str}**  
+        {emoji} {change_str}
         """)
 
-st.divider()
 
 # ---------------- Stock Selector ----------------
 stock_symbol = st.selectbox(
