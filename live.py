@@ -2,10 +2,10 @@ import streamlit as st
 import yfinance as yf
 
 st.set_page_config(page_title="Indian Stock Dashboard", layout="wide")
-st.title("📊 Indian Stock Market Dashboard")
+st.title(" Indian Stock Market Dashboard")
 
 # ---------------- Stock Suggestions ----------------
-st.subheader("📌 Stock Suggestions (Live Prices – Yahoo Finance)")
+st.subheader(" Stock Suggestions (Live Prices – Yahoo Finance)")
 
 suggestions = {
     "Reliance Industries": "RELIANCE.NS",
